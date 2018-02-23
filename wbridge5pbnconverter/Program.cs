@@ -7,18 +7,23 @@ namespace wbridge5pbnconverter
     class Program
     {
         enum Series { spades, hearts, diamonds, Clubs };
-        public static char[] refe = new char[] { '2', '3', '4','5','6','7','8','9','T','J','Q','K' };
+        public static char[] refe = new char[] { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' };
 
         static void Main(string[] args)
 
         {
-            var lines = from line in File.ReadLines(@"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn")
+            string filename;
+            if (args.Length > 0)
+                filename = args[0];
+            else
+                filename = @"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn";
+            var lines = from line in File.ReadLines(filename)
                             //where line.Contains("[Deal ")
                         select new
                         {
                             Line = line
                         };
-            using (StreamWriter sw = File.CreateText(@"C:\Users\3stra\Dropbox\Guy\BridgeHands\handfixed.pbn"))
+            using (StreamWriter sw = File.CreateText(filename.Substring(0,filename.Length-4)+"PROCESSED.pbn"))
             {
                 foreach (var l in lines)
 
@@ -26,7 +31,7 @@ namespace wbridge5pbnconverter
 
                     if (l.Line.Contains("[Deal "))
                     {
-                        
+
                         string s = FixDeal(l.Line);
                         Console.WriteLine("Pre Procesed Deal: " + l.Line);
                         Console.WriteLine("     Post Process: " + s);
@@ -59,7 +64,7 @@ namespace wbridge5pbnconverter
             foreach (var hand in splithands)
             {
                 if (hand.Length > 16)
-                    Alert(ConsoleColor.Yellow , "hand :" + hand + " is too long");
+                    Alert(ConsoleColor.Yellow, "hand :" + hand + " is too long");
                 else if (hand.Length < 16)
                     Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
                 var cardsets = hand.Split('.');
@@ -72,7 +77,7 @@ namespace wbridge5pbnconverter
                 for (int i = 0; i < 4; i++)
                     foreach (char c in cardsets[i])
                         if (!h[i].Add(c)) //report duplicate cards.
-                            Alert(ConsoleColor.Red , ">>>> ++ " + c.ToString() + "  is duplicate in " + (Series)(i + 1 - Convert.ToInt32(fix)));
+                            Alert(ConsoleColor.Red, ">>>> ++ " + c.ToString() + "  is duplicate in " + (Series)(i + 1 - Convert.ToInt32(fix)));
 
 
                 newdeal += cardsets[0] + "." + cardsets[1] + "." + cardsets[2] + "." + cardsets[3] + " ";
