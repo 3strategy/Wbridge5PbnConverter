@@ -2,6 +2,8 @@
 using System.IO;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
+
 namespace wbridge5pbnconverter
 {
     class Program
@@ -11,38 +13,54 @@ namespace wbridge5pbnconverter
 
         static void Main(string[] args)
         {
-            string filename;
-            if (args.Length > 0)
-                filename = args[0];
-            else
-                filename = @"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn";
-            Console.WriteLine("Input the card order: type \r\n S for SHCD\r\n H for HSDC\r\n " +
-                "D for DSHC\r\n C for CHSD\r\n  SHDC or 'Enter' for standard input order (no reordring will be perfomed)");
-            string order = Console.ReadLine().ToUpper();
-            var lines = from line in File.ReadLines(filename)
-                            //where line.Contains("[Deal ")
-                        select new
-                        {
-                            Line = line
-                        };
-            using (StreamWriter sw = File.CreateText(filename.Substring(0, filename.Length - 4) + "PROCESSED.pbn"))
+            try
             {
-                foreach (var l in lines)
-                {
-                    if (l.Line.Contains("[Deal "))
-                    {
 
-                        string s = FixDeal(l.Line,order);
-                        Console.WriteLine("Pre Procesed Deal: " + l.Line);
-                        Console.WriteLine("     Post Process: " + s);
-                        sw.WriteLine(s);
-                    }
-                    else
+
+
+                string filename;
+                if (args.Length > 0)
+                    filename = args[0];
+                else
+                    filename = @"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn";
+                Console.WriteLine("Input the card order: type \r\n S for SHCD\r\n H for HSDC\r\n " +
+                    "D for DSHC\r\n C for CHSD\r\n  SHDC or 'Enter' for standard input order (no reordring will be perfomed)");
+                string order = Console.ReadLine().ToUpper();
+                var lines = from line in File.ReadLines(filename)
+                                //where line.Contains("[Deal ")
+                            select new
+                            {
+                                Line = line
+                            };
+                using (StreamWriter sw = File.CreateText(filename.Substring(0, filename.Length - 4) + "PROCESSED.pbn"))
+                {
+                    foreach (var l in lines)
                     {
-                        Console.WriteLine(l.Line);
-                        sw.WriteLine(l.Line);
+                        if (l.Line.Contains("[Deal "))
+                        {
+
+                            string s = FixDeal(l.Line, order);
+                            Console.WriteLine("Pre Procesed Deal: " + l.Line);
+                            Console.WriteLine("     Post Process: " + s);
+                            sw.WriteLine(s);
+                        }
+                        else
+                        {
+                            Console.WriteLine(l.Line);
+                            sw.WriteLine(l.Line);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                //var st = new StackTrace(ex, true);
+                // Get the top stack frame
+                var frame = new StackTrace(ex, true).GetFrame(0);
+                // Get the line number from the stack frame
+                //var line = frame.GetFileLineNumber();
+                //var col = frame.GetFileColumnNumber();
+                Alert(ConsoleColor.Red, ex.Message + "\t line: " + frame.GetFileLineNumber() + "\t col: "+ frame.GetFileColumnNumber());
             }
             Console.ReadLine();
         }
@@ -71,13 +89,18 @@ namespace wbridge5pbnconverter
 
             foreach (var hand in splithands)
             {
+                //string cardsets = new string[4];
                 //count cards - report shortness or excess
                 if (hand.Length > 16)
                     Alert(ConsoleColor.Yellow, "hand :" + hand + " is too long");
                 else if (hand.Length < 16)
                     Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
                 var cardsets = hand.Split('.');
-                
+                if (cardsets.Length <4)
+                { //fix data set for short hands (to avoid index out of range in voids)
+                    Alert(ConsoleColor.Blue, " *** hand " + hand + " *** has unspecified VOID. Add a dot (.) where appropriate to specify the void. \r\n file will not be analysed further");
+                    return deal;
+                }
                 //reorder hands
                 switch (order)
                 {
@@ -109,7 +132,7 @@ namespace wbridge5pbnconverter
                         spades = cardsets[0];
                         hearts = cardsets[1];
                         diamonds = cardsets[2];
-                        clubs  = cardsets[3];
+                        clubs = cardsets[3];
                         break;
                     default:
                         Console.WriteLine("You requested a weird deck order");
@@ -127,10 +150,10 @@ namespace wbridge5pbnconverter
                     if (!heartHash.Add(c))
                         Alert(ConsoleColor.Red, ">>>> ++ " + c.ToString() + "  is duplicate in Hearts");
                 foreach (char c in diamonds)
-                    if (!diamondHash.Add(c)) 
+                    if (!diamondHash.Add(c))
                         Alert(ConsoleColor.Red, ">>>> ++ " + c.ToString() + "  is duplicate in Diamonds");
                 foreach (char c in clubs)
-                    if (!clubHash.Add(c)) 
+                    if (!clubHash.Add(c))
                         Alert(ConsoleColor.Red, ">>>> ++ " + c.ToString() + "  is duplicate in Clubs");
             }
             //cross hashes against reference to identify the specific missing card(s).
