@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace wbridge5pbnconverter
 {
@@ -79,6 +80,10 @@ namespace wbridge5pbnconverter
 
             string s = deal.Substring(9).ToUpper();
             s = s.Substring(0, s.Length - 2);
+            //RegexOptions options = RegexOptions.None;
+            Regex regex = new Regex("[ ]{2,}", RegexOptions.None);
+            s = regex.Replace(s, " ");
+            s = s.TrimEnd();
             var splithands = s.Split(' ');
             string newdeal = "";
             HashSet<char>[] h = new HashSet<char>[4];
@@ -170,7 +175,7 @@ namespace wbridge5pbnconverter
                 if (!clubHash.Contains(c)) //report missing cards.
                     Alert(ConsoleColor.Green, ">>>> -- " + c + " is missing in Clubs");
 
-            newdeal = "[Deal \"N:" + newdeal + "\"]";
+            newdeal = "[Deal \"N:" + newdeal.TrimEnd() + "\"]";
             //[Deal "N:KJ3.JT74.QJ32.76 62.A95.K96.JT832 Q74.KQ2.AT85.KQ4 AT985.863.74.A95"]
             return newdeal;
         }
