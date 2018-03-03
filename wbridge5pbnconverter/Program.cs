@@ -33,7 +33,8 @@ namespace wbridge5pbnconverter
                             {
                                 Line = line
                             };
-                using (StreamWriter sw = File.CreateText(filename.Substring(0, filename.Length - 4) + "PROCESSED.pbn"))
+                string newFile = filename.Substring(0, filename.Length - 4) + ".PRC.pbn";
+                using (StreamWriter sw = File.CreateText(newFile))
                 {
                     foreach (var l in lines)
                     {
@@ -52,6 +53,17 @@ namespace wbridge5pbnconverter
                         }
                     }
                 }
+
+                Console.WriteLine("press w to open in wBridge5");
+                string ss = Console.ReadLine();
+                if (ss.ToUpper() == "W")
+                {
+                    ProcessStartInfo startInfo = new ProcessStartInfo();
+                    startInfo.FileName = @"C:\wbridge5\Wbridge5.exe";
+                    startInfo.Arguments = newFile;
+                    Process.Start(startInfo);
+                }
+
             }
             catch (Exception ex)
             {
@@ -62,8 +74,8 @@ namespace wbridge5pbnconverter
                 //var line = frame.GetFileLineNumber();
                 //var col = frame.GetFileColumnNumber();
                 Alert(ConsoleColor.Red, ex.Message + "\t line: " + frame.GetFileLineNumber() + "\t col: " + frame.GetFileColumnNumber());
+                Console.ReadLine();
             }
-            Console.ReadLine();
         }
 
 
