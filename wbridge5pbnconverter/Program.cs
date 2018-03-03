@@ -10,7 +10,7 @@ namespace wbridge5pbnconverter
     class Program
     {
         enum Series { Spades, Hearts, Diamonds, Clubs };
-        public static char[] reference = new char[] { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K' };
+        public static char[] reference = new char[] { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' };
 
         static void Main(string[] args)
         {
@@ -61,7 +61,7 @@ namespace wbridge5pbnconverter
                 // Get the line number from the stack frame
                 //var line = frame.GetFileLineNumber();
                 //var col = frame.GetFileColumnNumber();
-                Alert(ConsoleColor.Red, ex.Message + "\t line: " + frame.GetFileLineNumber() + "\t col: "+ frame.GetFileColumnNumber());
+                Alert(ConsoleColor.Red, ex.Message + "\t line: " + frame.GetFileLineNumber() + "\t col: " + frame.GetFileColumnNumber());
             }
             Console.ReadLine();
         }
@@ -101,7 +101,7 @@ namespace wbridge5pbnconverter
                 else if (hand.Length < 16)
                     Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
                 var cardsets = hand.Split('.');
-                if (cardsets.Length <4)
+                if (cardsets.Length < 4)
                 { //fix data set for short hands (to avoid index out of range in voids)
                     Alert(ConsoleColor.Blue, " *** hand " + hand + " *** has unspecified VOID. Add a dot (.) where appropriate to specify the void. \r\n file will not be analysed further");
                     return deal;
