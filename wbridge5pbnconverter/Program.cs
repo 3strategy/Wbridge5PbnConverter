@@ -60,7 +60,7 @@ namespace wbridge5pbnconverter
                 {
                     ProcessStartInfo startInfo = new ProcessStartInfo();
                     startInfo.FileName = @"C:\wbridge5\Wbridge5.exe";
-                    startInfo.Arguments = newFile;
+                    startInfo.Arguments = "\"" + newFile + "\"";
                     Process.Start(startInfo);
                 }
 
