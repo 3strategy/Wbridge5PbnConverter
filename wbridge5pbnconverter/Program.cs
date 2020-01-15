@@ -25,7 +25,8 @@ namespace wbridge5pbnconverter
                 else
                     filename = @"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn";
                 Console.WriteLine("Input the card order: type \r\n S for SHCD\r\n H for HSDC\r\n " +
-                    "D for DSHC\r\n C for CHSD\r\n  SHDC or 'Enter' for standard input order (no reordring will be perfomed)");
+                    "D for DSHC\r\n C for CHSD\r\n  SHDC or 'Enter' for standard input order (no reordring will be perfomed)\r\n" +
+                    "HH for HSCD, CC for CDSH (special ordring)");
                 string order = Console.ReadLine().ToUpper();
                 var lines = from line in File.ReadLines(filename)
                                 //where line.Contains("[Deal ")
@@ -143,6 +144,18 @@ namespace wbridge5pbnconverter
                         clubs = cardsets[0];
                         hearts = cardsets[1];
                         spades = cardsets[2];
+                        diamonds = cardsets[3];
+                        break;
+                    case "CC":
+                        clubs = cardsets[0];
+                        diamonds = cardsets[1];
+                        spades = cardsets[2];
+                        hearts = cardsets[3];
+                        break;
+                    case "HH":
+                        hearts = cardsets[0];
+                        spades = cardsets[1];
+                        clubs = cardsets[2];
                         diamonds = cardsets[3];
                         break;
                     case "SHDC":
