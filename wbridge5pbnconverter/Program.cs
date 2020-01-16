@@ -96,6 +96,9 @@ namespace wbridge5pbnconverter
             //RegexOptions options = RegexOptions.None;
             Regex regex = new Regex("[ ]{2,}", RegexOptions.None);
             s = regex.Replace(s, " ");
+            s = s.Replace('V', 'J');
+            s = s.Replace('R', 'K');
+            s = s.Replace('D', 'Q');
             s = s.TrimEnd();
             var splithands = s.Split(' ');
             string newdeal = "";
