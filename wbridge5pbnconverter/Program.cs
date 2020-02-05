@@ -26,7 +26,8 @@ namespace wbridge5pbnconverter
                     filename = @"C:\Users\3stra\Dropbox\Guy\BridgeHands\hand.pbn";
                 Console.WriteLine("Input the card order: type \r\n S for SHCD\r\n H for HSDC\r\n " +
                     "D for DSHC\r\n C for CHSD\r\n  SHDC or 'Enter' for standard input order (no reordring will be perfomed)\r\n" +
-                    "HH for HSCD, CC for CDSH (special ordring)");
+                    "HH for HSCD, CC for CDSH (special ordring)\r\n" +
+                    "If hand is in full Notation unsorted (e.g. AsKsQhJcTd) press enter");
                 string order = Console.ReadLine().ToUpper();
                 var lines = from line in File.ReadLines(filename)
                                 //where line.Contains("[Deal ")
@@ -82,6 +83,9 @@ namespace wbridge5pbnconverter
 
         public static string FixDeal(string deal, string order)
         {
+            bool fullNotation = false;
+            if (deal.Length > 110) fullNotation = true;
+
             if (order == "")
                 order = "SHDC";//standard pbn with no reordering.
 
@@ -90,16 +94,20 @@ namespace wbridge5pbnconverter
             HashSet<char> heartHash = new HashSet<char>();
             HashSet<char> diamondHash = new HashSet<char>();
             HashSet<char> clubHash = new HashSet<char>();
-
+            //           if(!fullNotation)
+            //           { 
             string s = deal.Substring(9).ToUpper();
             s = s.Substring(0, s.Length - 2);
             //RegexOptions options = RegexOptions.None;
             Regex regex = new Regex("[ ]{2,}", RegexOptions.None);
             s = regex.Replace(s, " ");
-            s = s.Replace('V', 'J');
-            s = s.Replace('R', 'K');
-            s = s.Replace('D', 'Q');
-            s = s.TrimEnd();
+            if (!fullNotation)
+            {
+                s = s.Replace('V', 'J');
+                s = s.Replace('R', 'K');
+                s = s.Replace('D', 'Q');
+                s = s.TrimEnd();
+            }
             var splithands = s.Split(' ');
             string newdeal = "";
             HashSet<char>[] h = new HashSet<char>[4];
@@ -112,64 +120,84 @@ namespace wbridge5pbnconverter
             {
                 //string cardsets = new string[4];
                 //count cards - report shortness or excess
-                if (hand.Length > 16)
-                    Alert(ConsoleColor.Yellow, "hand :" + hand + " is too long");
-                else if (hand.Length < 16)
-                    Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
-                var cardsets = hand.Split('.');
-                if (cardsets.Length < 4)
-                { //fix data set for short hands (to avoid index out of range in voids)
-                    Alert(ConsoleColor.Blue, " *** hand " + hand + " *** has unspecified VOID. Add a dot (.) where appropriate to specify the void. \r\n file will not be analysed further");
-                    return deal;
-                }
-                //reorder hands
-                switch (order)
+                if (fullNotation)
                 {
-                    case "S":
-                        spades = cardsets[0];
-                        hearts = cardsets[1];
-                        clubs = cardsets[2];
-                        diamonds = cardsets[3];
-                        break;
-                    case "H":
-                        hearts = cardsets[0];
-                        spades = cardsets[1];
-                        diamonds = cardsets[2];
-                        clubs = cardsets[3];
-                        break;
-                    case "D":
-                        diamonds = cardsets[0];
-                        spades = cardsets[1];
-                        hearts = cardsets[2];
-                        clubs = cardsets[3];
-                        break;
-                    case "C":
-                        clubs = cardsets[0];
-                        hearts = cardsets[1];
-                        spades = cardsets[2];
-                        diamonds = cardsets[3];
-                        break;
-                    case "CC":
-                        clubs = cardsets[0];
-                        diamonds = cardsets[1];
-                        spades = cardsets[2];
-                        hearts = cardsets[3];
-                        break;
-                    case "HH":
-                        hearts = cardsets[0];
-                        spades = cardsets[1];
-                        clubs = cardsets[2];
-                        diamonds = cardsets[3];
-                        break;
-                    case "SHDC":
-                        spades = cardsets[0];
-                        hearts = cardsets[1];
-                        diamonds = cardsets[2];
-                        clubs = cardsets[3];
-                        break;
-                    default:
-                        Console.WriteLine("You requested a weird deck order");
+                    if (hand.Length > 26)
+                        Alert(ConsoleColor.Yellow, "hand :" + hand + " is too long");
+                    else if (hand.Length < 26)
+                        Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
+                    spades = "";hearts = "";diamonds = ""; clubs = "";
+                    for (int i = 1; i < 26; i += 2)
+                    {
+                        if (hand[i] == 'S') spades += hand[i - 1];
+                        else if (hand[i] == 'H') hearts += hand[i - 1];
+                        else if (hand[i] == 'D') diamonds += hand[i - 1];
+                        else if (hand[i] == 'C') clubs += hand[i - 1];
+                        else { Alert(ConsoleColor.Yellow, "cannot parse full notation at pos :\r\n" + hand.Substring(0, i - 1),false); Alert(ConsoleColor.Red, hand.Substring(i-1, 2)); };
+                    }
+                }
+                else
+                {
+                    if (hand.Length > 16)
+                        Alert(ConsoleColor.Yellow, "hand :" + hand + " is too long");
+                    else if (hand.Length < 16)
+                        Alert(ConsoleColor.Yellow, "hand :" + hand + " is too short");
+                    var cardsets = hand.Split('.');
+                    if (cardsets.Length < 4)
+                    { //fix data set for short hands (to avoid index out of range in voids)
+                        Alert(ConsoleColor.Blue, " *** hand " + hand + " *** has unspecified VOID. Add a dot (.) where appropriate to specify the void. \r\n file will not be analysed further");
                         return deal;
+                    }
+
+                    //reorder hands
+                    switch (order)
+                    {
+                        case "S":
+                            spades = cardsets[0];
+                            hearts = cardsets[1];
+                            clubs = cardsets[2];
+                            diamonds = cardsets[3];
+                            break;
+                        case "H":
+                            hearts = cardsets[0];
+                            spades = cardsets[1];
+                            diamonds = cardsets[2];
+                            clubs = cardsets[3];
+                            break;
+                        case "D":
+                            diamonds = cardsets[0];
+                            spades = cardsets[1];
+                            hearts = cardsets[2];
+                            clubs = cardsets[3];
+                            break;
+                        case "C":
+                            clubs = cardsets[0];
+                            hearts = cardsets[1];
+                            spades = cardsets[2];
+                            diamonds = cardsets[3];
+                            break;
+                        case "CC":
+                            clubs = cardsets[0];
+                            diamonds = cardsets[1];
+                            spades = cardsets[2];
+                            hearts = cardsets[3];
+                            break;
+                        case "HH":
+                            hearts = cardsets[0];
+                            spades = cardsets[1];
+                            clubs = cardsets[2];
+                            diamonds = cardsets[3];
+                            break;
+                        case "SHDC":
+                            spades = cardsets[0];
+                            hearts = cardsets[1];
+                            diamonds = cardsets[2];
+                            clubs = cardsets[3];
+                            break;
+                        default:
+                            Console.WriteLine("You requested a weird deck order");
+                            return deal;
+                    }
                 }
 
                 //append hand cards to newdeal in correct pbn order
@@ -207,10 +235,11 @@ namespace wbridge5pbnconverter
             //[Deal "N:KJ3.JT74.QJ32.76 62.A95.K96.JT832 Q74.KQ2.AT85.KQ4 AT985.863.74.A95"]
             return newdeal;
         }
-        public static void Alert(ConsoleColor color, string s)
+        public static void Alert(ConsoleColor color, string s, bool newline=true)
         {
             Console.ForegroundColor = color;
-            Console.WriteLine(s);
+            if (newline) Console.WriteLine(s);
+            else Console.Write(s);
             Console.ForegroundColor = ConsoleColor.White;
         }
     }
